@@ -4,6 +4,7 @@ from rclpy.node import Node
 class MyPythonNode(Node):
     def __init__(self):
         super().__init__("my_node_name")
+
         self.get_logger().info("This node just says 'Hello'")
 
 def main(args=None):
