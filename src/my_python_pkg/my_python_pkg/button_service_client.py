@@ -1,26 +1,66 @@
-import rospy
+import rclpy
+from rclpy.node import Node
+
 from std_srvs.srv import SetBool
 import RPi.GPIO as GPIO
 
-IR_R = 18
-IR_L = 27
+class ButtonNode(Node):
+    IR_R = 18
+    IR_L = 27
 
-BUTTON_GPIO = IR_R
+    BUTTON_GPIO = IR_R
+
+    @property
+    def log(self):
+        return self.get_logger()
+
+    def __init__(self):
+        super().__init__('button_monitor')
+
+        self.cli = self.create_client(SetBool, "set_led_state")
 
 
-def button_callback(channel):
-    power_on_led = not GPIO.input(BUTTON_GPIO)
-    rospy.wait_for_service('set_led_state')
-    try:
-        set_led_state = rospy.ServiceProxy('set_led_state', SetBool)
-        resp = set_led_state(power_on_led)
-    except rospy.ServiceException, e:
-        rospy.logwarn(e)
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(self.BUTTON_GPIO, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+        GPIO.add_event_detect(
+            self.BUTTON_GPIO, GPIO.BOTH,
+            callback=self.button_callback,
+            bouncetime=50
+        )
+
+    def button_callback(self, channel):
+
+        power_on_led = not GPIO.input(self.BUTTON_GPIO)
+
+        while not self.cli.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('service not available, waiting again...')
+
+        self.req = SetBool.Request()
+        self.req.data = power_on_led
+
+        self.cli.call_async(self.req)
+
+        #rospy.wait_for_service('set_led_state')
+        #try:
+        #    set_led_state = rospy.ServiceProxy('set_led_state', SetBool)
+        #    resp = set_led_state(power_on_led)
+        #except rospy.ServiceException, e:
+        #    self.log.warn(e)
+
+    def destroy_node(self):
+        GPIO.cleanup()
+        super().destroy_node()
+
+
+def main(args=None):
+    rclpy.init(args=args)
+
+    node = ButtonNode()
+    rclpy.spin(node)
+    node.destroy_node()
+
+    rclpy.shutdown()
+
+
 if __name__ == '__main__':
-    rospy.init_node('button_monitor')
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setup(BUTTON_GPIO, GPIO.IN, pull_up_down = GPIO.PUD_UP)
-    GPIO.add_event_detect(BUTTON_GPIO, GPIO.BOTH,
-            callback=button_callback, bouncetime=50)
-    rospy.spin()
-    GPIO.cleanup()
+    main()
