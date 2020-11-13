@@ -28,6 +28,7 @@ class LedNode(Node):
         GPIO.output(self.LED_GPIO, req.data)
         res.success = True
         res.message = 'Successfully changed LED state'
+        self.log.info(res.message)
         return res
 
     def destroy_node(self):

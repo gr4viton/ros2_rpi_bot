@@ -21,16 +21,17 @@ class ButtonNode(Node):
 
 
         GPIO.setmode(GPIO.BCM)
-        GPIO.setup(self.BUTTON_GPIO, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+        GPIO.setup(self.BUTTON_GPIO, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         GPIO.add_event_detect(
             self.BUTTON_GPIO, GPIO.BOTH,
             callback=self.button_callback,
-            bouncetime=50
+            bouncetime=100
         )
 
     def button_callback(self, channel):
 
         power_on_led = not GPIO.input(self.BUTTON_GPIO)
+        self.log.info(f"button_callback = {power_on_led}")
 
         while not self.cli.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('service not available, waiting again...')
