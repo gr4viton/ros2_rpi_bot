@@ -4,6 +4,7 @@ from rclpy.node import Node
 from std_srvs.srv import SetBool
 import RPi.GPIO as GPIO
 
+
 class ButtonNode(Node):
     IR_R = 18
     IR_L = 27
@@ -15,17 +16,14 @@ class ButtonNode(Node):
         return self.get_logger()
 
     def __init__(self):
-        super().__init__('button_monitor')
+        super().__init__("button_monitor")
 
         self.cli = self.create_client(SetBool, "set_led_state")
-
 
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self.BUTTON_GPIO, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         GPIO.add_event_detect(
-            self.BUTTON_GPIO, GPIO.BOTH,
-            callback=self.button_callback,
-            bouncetime=100
+            self.BUTTON_GPIO, GPIO.BOTH, callback=self.button_callback, bouncetime=100
         )
 
     def button_callback(self, channel):
@@ -34,18 +32,18 @@ class ButtonNode(Node):
         self.log.info(f"button_callback = {power_on_led}")
 
         while not self.cli.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info('service not available, waiting again...')
+            self.get_logger().info("service not available, waiting again...")
 
         self.req = SetBool.Request()
         self.req.data = power_on_led
 
         self.cli.call_async(self.req)
 
-        #rospy.wait_for_service('set_led_state')
-        #try:
+        # rospy.wait_for_service('set_led_state')
+        # try:
         #    set_led_state = rospy.ServiceProxy('set_led_state', SetBool)
         #    resp = set_led_state(power_on_led)
-        #except rospy.ServiceException, e:
+        # except rospy.ServiceException, e:
         #    self.log.warn(e)
 
     def destroy_node(self):
@@ -63,5 +61,5 @@ def main(args=None):
     rclpy.shutdown()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

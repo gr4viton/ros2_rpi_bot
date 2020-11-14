@@ -4,6 +4,7 @@ from rclpy.node import Node
 from std_srvs.srv import SetBool
 import RPi.GPIO as GPIO
 
+
 class LedNode(Node):
 
     LED0 = 10
@@ -17,17 +18,19 @@ class LedNode(Node):
         return self.get_logger()
 
     def __init__(self):
-        super().__init__('led_moderator')
+        super().__init__("led_moderator")
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self.LED_GPIO, GPIO.OUT)
 
-        self.srv = self.create_service(SetBool, 'set_led_state', self.set_led_state_callback)
+        self.srv = self.create_service(
+            SetBool, "set_led_state", self.set_led_state_callback
+        )
         self.log.info("Service server started. Ready to get requests.")
 
     def set_led_state_callback(self, req, res):
         GPIO.output(self.LED_GPIO, req.data)
         res.success = True
-        res.message = 'Successfully changed LED state'
+        res.message = "Successfully changed LED state"
         self.log.info(res.message)
         return res
 
@@ -46,5 +49,5 @@ def main(args=None):
     rclpy.shutdown()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

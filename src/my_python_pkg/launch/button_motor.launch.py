@@ -17,8 +17,16 @@ def generate_launch_description():
         name="enlightened_sheep",
     )
 
+    listener_node2 = Node(
+        package="my_python_pkg",
+        executable="mot",
+        name="motorized_sheep",
+    )
+
     ld.add_action(talker_node)
-    ld.add_action(listener_node)
+    # ld.add_action(listener_node)
+    ld.add_action(listener_node2)
 
     return ld
+
 

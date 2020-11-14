@@ -47,6 +47,7 @@ setup(
             'test = my_python_pkg.my_python_node:main',
             'led = my_python_pkg.led_service_server:main',
             'but = my_python_pkg.button_service_client:main',
+            'mot = my_python_pkg.motor_service_server:main',
         ],
     },
 )
